@@ -1,0 +1,243 @@
+<template>
+    <div class="container">
+        <div class="header">
+            <div class="img">
+                <image src="{{movieDetail.images.small}}"></image>
+            </div>
+            <div class="detail">
+                <div class="info">
+                    <div class="item">
+                        <text class="label">导演:</text>
+                        <text class="text">{{directors}}</text>
+                    </div>
+                    <div class="item">
+                        <text class="label">主演:</text>
+                        <text class="text">{{casts}}</text>
+                    </div>
+
+                    <div class="item">
+                        <text class="label">类型:</text>
+                        <text class="text">{{movieDetail.genres.join(' / ')}}</text>
+                    </div>
+                    <div class="item">
+                        <text class="label">国家:</text>
+                        <text class="text">{{movieDetail.countries.join(' / ')}}</text>
+                    </div>
+                    <div class="item">
+                        <text class="label">年份:</text>
+                        <text class="text">{{movieDetail.year}}</text>
+                    </div>
+                    <div class="item">
+                        <text class="label">又名:</text>
+                        <text class="text">{{movieDetail.aka.join(' / ')}}</text>
+                    </div>
+                </div>
+                <div class="rating">
+                    <text class="score"> {{movieDetail.rating.average.toFixed(1)}} </text>
+                    <div class="detail">
+                        <div class="star">
+                            <rating rating={{movieDetail.rating.average/2}} indicator="true"></rating>
+                        </div>
+                        <div class="count">
+                            <text>{{movieDetail.ratings_count}} 人评价</text>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="intro">
+            <text class="title">剧情简介</text>
+            <text class="content">{{movieDetail.summary}}</text>
+        </div>
+        <div class="casts">
+            <div for="movieDetail.casts">
+                <image src="{{$item.avatars && $item.avatars.small}}">
+                </image>
+                <text>
+                    {{$item.name}}
+                </text>
+            </div>
+        </div>
+    </div>
+</template>
+
+<style lang="less">
+    .container {
+        flex-direction: column;
+        color: #bbbbbb;
+
+        .header {
+            display: flex;
+            flex: 1;
+            .img {
+                flex: 2;
+                margin: 5px;
+
+                image {
+                    width: 100%;
+                    resize-mode: contain;
+                }
+            }
+            .detail {
+                flex-direction: column;
+                flex: 3;
+                margin: 5px;
+
+                .info {
+                    flex-direction: column;
+                    align-items: flex-start;
+
+                    .item {
+                        align-items: flex-start;
+
+                        .label {
+                            color: #2277AA;
+                        }
+
+                        .text {
+                            margin-left: 8px;
+                            padding-right: 65px;
+                        }
+                    }
+                }
+
+                .rating {
+                    bottom: 0px;
+                    margin-bottom: 0px;
+
+                    >.score {
+                        flex: 1.5;
+                        font-size: 58px;
+                        padding: 5px;
+                    }
+
+                    >.detail {
+                        flex: 5;
+                        flex-direction: column;
+
+                        .star {
+                            height: 60px;
+                            padding: 10px 100px 0px 0px;
+                        }
+
+                        .count {
+                            padding: 10px 100px 0px 5px;
+                        }
+                    }
+                }
+            }
+        }
+
+        .intro {
+            flex: 5;
+            margin: 5px;
+            flex-direction: column;
+
+            .title {
+                color: #2277AA;
+                font-size: 36px;
+            }
+        }
+
+        .casts {
+            margin-top: 10px;
+            flex: 1;
+
+            >div {
+                flex-direction: column;
+                margin: 5px;
+                flex: 1;
+
+                >image {
+                    width: 100%;
+                    resize-mode: contain;
+                }
+
+                >text {
+                    color: #2277AA;
+                    font-size: 26px;
+                    text-align: center;
+                }
+            }
+        }
+    }
+</style>
+
+<script>
+
+    import prompt from '@system.prompt'
+    import fetch from '@system.fetch'
+    import storage from '@system.storage'
+
+    export default {
+        data: {
+            movieDetail: {
+                year: '0000',
+                images: [],
+                casts: [],
+                genres: [],
+                countries: [],
+                directors: [],
+                aka: [],
+                rating: { average: 0 },
+                ratings_count: ''
+            },
+            directors: '',
+            casts: '',
+            detailUrl: 'http://api.douban.com/v2/movie/subject/',
+        },
+        onInit() {
+            this.$page.setTitleBar({ text: this.movieTitle })
+            this._loadDetailData()
+        },
+        _loadDetailData() {
+            let localData = storage.get({
+                key: `detail-${this.movieId}`,
+                success: (data) => {
+                    if (data) {
+                        this._handleData(JSON.parse(data))
+                    } else {
+                        this._fetchData()
+                    }
+                },
+                fail: (error) => {
+                    this._fetchData()
+                }
+            });
+        },
+        _fetchData() {
+            let url = `${this.detailUrl}${this.movieId}`
+            fetch.fetch({
+                url,
+                success: (result) => {
+                    let dataObj = JSON.parse(result.data)
+
+                    if (dataObj.code === 112) {
+                        prompt.showToast({
+                            message: "对不起，已到达API调用次数限制，请1分钟后再使用本软件。"
+                        })
+                        return
+                    }
+
+                    this._handleData(dataObj)
+                    this._upsertStorage(`detail-${this.movieId}`, result.data)
+
+                },
+                fail: (data, code) => {
+                    prompt.showToast({
+                        message: "数据加载失败"
+                    })
+                }
+            })
+        },
+        _handleData(data) {
+            this.movieDetail = data
+            this.directors = data.directors.map(v => v.name).join(' / ')
+            this.casts = data.casts.map(v => v.name).join(' / ')
+        },
+        _upsertStorage(key, value) {
+            storage.set({ key, value })
+        }
+    }
+</script>

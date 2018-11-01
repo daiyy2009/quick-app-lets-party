@@ -1,0 +1,7 @@
+<script>
+  import mock from './common/mock/mock.js'
+
+  module.exports = {
+    mock
+  }
+</script>
