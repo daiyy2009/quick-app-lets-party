@@ -1,10 +1,10 @@
 <template>
     <div class="container">
         <div class="head">
-            <input id="search" class="search-input" value="{{searchKeywords}}" enterkeytype="search" placeholder="请输入电影名称、导演或演员" onchange="setSearchKey"
+            <input id="search" class="search-input" value="{{searchKeywords}}" enterkeytype="search" placeholder="请输入群编号" onchange="setCode"
                 onenterkeyclick="doSearch({index:3})">
             </input>
-            <input class="search-btn" type="button" value="搜索" onclick="doSearch({index:3})" />
+            <input class="search-btn" type="button" value="搜索" onclick="doSearch()" />
             <input class="search-btn" type="button" value="新建" onclick="doAdd()" />
         </div>
         <stack class="body">
@@ -43,9 +43,10 @@
         .body {
             width: 100%;
             height: 100%;
-
+            background-color: #ffffff;
 
             .background {
+                resize-mode: contain;
                 width: 100%;
                 height: 100%;
             }
@@ -71,6 +72,9 @@
 
         },
         doAdd: function () {
+
+        },
+        setCode: function () {
 
         }
     }
