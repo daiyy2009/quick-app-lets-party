@@ -3,17 +3,40 @@
         <div class="head">
             <image class="user-head" src="../common/images/default-head.png"></image>
             <div class="search-box">
-                <input class="search-input" enterkeytype="search" value="{{searchValue}}" placeholder="{{placeholder}}" onchange="updateValue"
+                <input class="search-input" type="number" enterkeytype="search" value="{{searchValue}}" placeholder="{{placeholder}}" onchange="updateValue"
                     onenterkeyclick="doSearch"></input>
                 <div class="search-icon-container" onclick="doSearch">
                     <image class="search-icon " src="../common/images/icon-search.png"></image>
                 </div>
             </div>
-            <input class="btn-add" type="button" value="+" onclick="doAdd" />
+            <input class="btn-add" type="button" value="+" onclick="popupAdd" />
         </div>
         <stack class="body">
             <image class="background" src="../common/images/background.png"></image>
         </stack>
+        <div if="isShowMask" class="mask"></div>
+        <div if="isShowAdd" class="add-group">
+            <div class="item">
+                <text class="item-label">群组号码：</text>
+                <input class="item-value" type="number"></input>
+            </div>
+            <div class="item">
+                <text class="item-label">聚餐地点：</text>
+                <input class="item-value"></input>
+            </div>
+            <div class="item">
+                <text class="item-label">日期：</text>
+                <picker type="date" value="{{dateOfToday}}" onchange="changeDate" class="item-value"></picker>
+            </div>
+            <div class="item">
+                <text class="item-label">时间：</text>
+                <picker type="time" value="{{timeOfNow}}" onchange="changeTime" class="item-value"></picker>
+            </div>
+            <div class="item bottom">
+                <input type="button" value="取消" onclick="cancelAdd"/>
+                <input type="button" value="确认" onclick="doAdd"/>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -21,9 +44,12 @@
     .container {
         flex-direction: column;
         color: #bbbbbb;
+
         .head {
             justify-content: space-between;
             height: 95px;
+            border-bottom-color: #f0f0f0;
+            border-bottom-width: 1px;
 
             .user-head {
                 border-radius: 50px;
@@ -63,7 +89,6 @@
                 }
             }
 
-
             .btn-add {
                 width: 75px;
                 height: 75px;
@@ -87,6 +112,58 @@
                 height: 100%;
             }
         }
+
+        .mask {
+            position: fixed;
+            background-color: rgba(200, 200, 200, 0.6);
+            width: 100%;
+            height: 100%
+        }
+
+        .add-group {
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            background-color: #ffffff;
+            top: 200px;
+            left: 100px;
+            width: 550px;
+            height: 600px;
+            border-color: #2277AA;
+            border-width: 1px;
+            border-radius: 20px;
+            align-items: center;
+            padding-top: 20px;
+
+            >.item {
+                width: 100%;
+                justify-content: space-between;
+                margin-top: 15px;
+                >.item-label {
+                    margin-left: 10px;
+                    font-size: 36px;
+                }
+
+                >.item-value {
+                    border-radius: 8px;
+                    border-color: #2277AA;
+                    border-width: 1px;
+                    padding: 5px;
+                    height: 70px;
+                    margin-right: 10px;
+                    width: 340px;
+                }
+            }
+
+            >.bottom {
+                margin-top: 100px;
+                padding: 0px 40px;
+                height: 80px;
+                >input {
+                    width: 200px;
+                }
+            }
+        }
     }
 </style>
 
@@ -99,10 +176,16 @@
     export default {
         data: {
             searchValue: '',
-            placeholder: '请输入群号'
+            placeholder: '请输入群号',
+            isShowMask: false,
+            isShowAdd: false,
+            dateOfToday: '',
+            timeOfNow: ''
         },
         onInit: function () {
-
+            const curDate = new Date();
+            this.dateOfToday = `${curDate.getFullYear()}-${curDate.getMonth() + 1}-${curDate.getDate()}`
+            this.timeOfNow = `${curDate.getHours()}:${curDate.getMinutes()}`
 
         },
         updateValue: function () {
@@ -111,11 +194,27 @@
         doSearch: function () {
 
         },
-        doAdd: function () {
+        popupAdd: function () {
+            this.isShowMask = true;
+            this.isShowAdd = true;
+        },
+        cancelAdd: function() {
+            this.isShowMask = false;
+            this.isShowAdd = false;
+        },
 
+        doAdd: function() {
+            this.isShowMask = false;
+            this.isShowAdd = false;
         },
         setCode: function () {
 
+        },
+        changeDate:function(value) {
+             this.dateOfToday = `${value.year}-${value.month + 1}-${value.day}`
+        },
+        changeTime:function(value) {
+             this.timeOfNow = `${value.hour}:${value.minute}`
         }
     }
 </script>
